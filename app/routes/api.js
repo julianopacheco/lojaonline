@@ -1,5 +1,7 @@
 var User = require('../models/user');
 
+var Product = require('../models/product');
+
 var config = require('../../config');
 
 var secretKey = config.secretKey;
@@ -9,7 +11,7 @@ var jsonwebtoken = require('jsonwebtoken');
 function createToken(user){
 
 	var token = jsonwebtoken.sign({
-		_id: user._id,
+		id: user._id,
 		name: user.name,
 		username: user.username
 	}, secretKey, {
@@ -91,6 +93,7 @@ module.exports = function(app, express){
 		var token = req.body.token || req.param("token") || req.headers['x-access-token'];
 
 		if(token){
+
 			jsonwebtoken.verify(token, secretKey, function(err, decoded){
 				if(err){
 					res.status(403).send({ success: false, message: "Failed to authenticate user"});
@@ -105,11 +108,40 @@ module.exports = function(app, express){
 
 	});
 
-	api.get('/', function(req, res){
+	api.route('/')
+		.post(function(req, res){
 
-		res.json("Hello World!");
+			var product = new Product({
+				name: req.body.name,
+				description: req.body.description,
+				salesValue: req.body.salesValue,
+				creator: req.decoded.id
+			});
+
+			product.save(function(err){
+				if(err){
+					console.log(err);
+
+					res.send(err);
+					return;
+				} 
+				res.json({message: "New product created"});
+			});
+		})
+
+		.get(function(req, res){
+			Product.find({creator: req.decoded.id}, function(err, products){
+				if(err){
+					res.send(err);
+					return;
+				}
+				res.json(products);
+			});
+		});
+
+	api.get('/me', function(req, res){
+		res.json(req.decoded);
 	});
-
 
 	return api;
 };

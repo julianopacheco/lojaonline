@@ -2,11 +2,11 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 var ProductSchema = new Schema({
-
-
-	name: { type: String, required: true, index: { unique: true },
+	name: { type: String, required: true, index: { unique: true }},
 	description: String,
-	value: { type: Types.Money, format: 'R$ 0.000,00' },
-	creator: { type: Schema.Types.ObjectId, re: "User"},
-	created: { type: Date, defauly: Date.now}
+	salesValue: Number,
+	creator: { type: Schema.Types.ObjectId, ref: "User" },
+	created: { type: Date, default: Date.now }
 });
+
+module.exports = mongoose.model('Product', ProductSchema);
